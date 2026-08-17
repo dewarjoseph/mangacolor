@@ -3,57 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manga Colorizer</title>
+    <title>Manga Colorizer Web App</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1>🎨 Manga Colorizer</h1>
-            <p>Bring your favorite manga to life with a splash of color directly in your browser.</p>
-        </div>
+        <h1>Manga Colorizer</h1>
+        <p>Enter a manga page URL or upload an image to colorize it.</p>
     </header>
 
-    <main class="container">
-        <section class="hero">
-            <div class="hero-content">
-                <h2>How it Works</h2>
-                <p>The Manga Colorizer is a simple bookmarklet. It applies advanced CSS filters to images on manga reading sites to simulate a full-color release.</p>
-
-                <div class="bookmarklet-container">
-                    <h3>Drag this button to your bookmarks bar:</h3>
-                    <!-- Minified javascript payload -->
-                    <a href="javascript:(function(){const images=document.querySelectorAll('img, canvas');for(let i=0;i<images.length;i++){const img=images[i];img.style.filter='sepia(0.8) hue-rotate(330deg) saturate(3) contrast(1.2)';if(img.parentElement){if(img.parentElement.querySelector('.manga-colorizer-overlay'))continue;img.parentElement.style.position='relative';let overlay=document.createElement('div');overlay.className='manga-colorizer-overlay';overlay.style.position='absolute';overlay.style.top='0';overlay.style.left='0';overlay.style.width='100%25';overlay.style.height='100%25';overlay.style.backgroundColor='rgba(255, 100, 100, 0.2)';overlay.style.mixBlendMode='overlay';overlay.style.pointerEvents='none';img.parentElement.appendChild(overlay);}}let notification=document.createElement('div');notification.textContent='Manga Colorizer Applied!';notification.style.position='fixed';notification.style.top='20px';notification.style.right='20px';notification.style.backgroundColor='%234CAF50';notification.style.color='white';notification.style.padding='15px';notification.style.borderRadius='5px';notification.style.zIndex='999999';notification.style.fontFamily='sans-serif';document.body.appendChild(notification);setTimeout(()=>{notification.style.opacity='0';notification.style.transition='opacity 1s';setTimeout(()=>notification.remove(),1000);},3000);})();" class="bookmarklet-btn">Manga Colorizer</a>
-                </div>
+    <main>
+        <section class="controls">
+            <div class="input-group">
+                <input type="text" id="url-input" placeholder="Paste manga page URL here...">
+                <button id="load-url-btn">Load URL</button>
             </div>
-            <div class="hero-image">
-                <!-- A placeholder image to demonstrate -->
-                <div class="demo-image-container">
-                    <img src="https://images.unsplash.com/photo-1618331835717-801e976710b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Manga Example" class="demo-image">
-                    <div class="overlay"></div>
-                </div>
-                <p class="caption">Click the bookmarklet button above to test it on this page!</p>
+            <div class="divider">OR</div>
+            <div class="input-group">
+                <label for="file-input" class="file-label">Upload Image</label>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+
+            <div class="settings">
+                <label for="color-style">Color Style:</label>
+                <select id="color-style">
+                    <option value="vibrant">Vibrant Shonen</option>
+                    <option value="warm">Warm Vintage</option>
+                    <option value="cool">Cool Neon</option>
+                </select>
             </div>
         </section>
 
-        <section class="instructions">
-            <h2>Installation Instructions</h2>
-            <ol>
-                <li>Make sure your bookmarks bar is visible (usually <kbd>Ctrl+Shift+B</kbd> or <kbd>Cmd+Shift+B</kbd>).</li>
-                <li>Click and drag the green <strong>Manga Colorizer</strong> button to your bookmarks bar.</li>
-                <li>Go to your favorite manga reading website.</li>
-                <li>Click the <strong>Manga Colorizer</strong> bookmark.</li>
-                <li>Enjoy the vibrant colors!</li>
-            </ol>
+        <section id="viewer-container">
+            <div id="loading" class="hidden">Processing...</div>
+            <div id="error-message" class="hidden"></div>
+            <div id="canvas-container"></div>
         </section>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>Created by Jules. Open source and free forever.</p>
-            <p><a href="https://github.com/manga-colorizer">View on GitHub</a></p>
-        </div>
-    </footer>
+    <script src="app.js"></script>
 </body>
 </html>
