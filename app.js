@@ -162,54 +162,49 @@ document.addEventListener('DOMContentLoaded', () => {
     window.canvasContainer = canvasContainer;
 });
 
-// --- Fetching Logic (CORS Proxy + HTML Parsing) appended to app.js ---
+
+// --- Fetching Logic ---
 document.addEventListener('DOMContentLoaded', () => {
     const urlInput = document.getElementById('url-input');
     const loadUrlBtn = document.getElementById('load-url-btn');
-
-    // We use allorigins.win as a free CORS proxy
-    const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=';
 
     async function fetchImagesFromUrl(targetUrl) {
         window.canvasContainer.innerHTML = '';
         window.showLoading();
 
         try {
-            // Check if direct image URL
+            // If it's a direct image URL, process it via wsrv proxy
             if (targetUrl.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i)) {
-                // To bypass canvas taint, load image through proxy as well
-                const proxiedImgUrl = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`;
+                const proxiedImgUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(targetUrl);
                 window.processImageSource(proxiedImgUrl);
                 return;
             }
 
-            // Otherwise, assume it's an HTML page
-            const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+            // Otherwise, fetch HTML using corsproxy.io
+            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+            const response = await fetch(proxyUrl);
             if (!response.ok) throw new Error('Network response was not ok.');
 
-            const data = await response.json();
-            const htmlString = data.contents;
+            const htmlString = await response.text();
 
             // Parse HTML
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlString, 'text/html');
 
-            // Find likely manga images (heuristic: large images or images in main content area)
-            // For simplicity, we'll grab all <img> tags and filter out tiny ones later,
-            // or just grab the first few large ones.
+            // Find likely manga images
             const images = doc.querySelectorAll('img');
             const validImageUrls = [];
 
             images.forEach(img => {
                 let src = img.getAttribute('src') || img.getAttribute('data-src');
                 if (src) {
-                    // Resolve relative URLs
-                    if (src.startsWith('/')) {
+                    if (src.startsWith('//')) {
+                        src = 'https:' + src;
+                    } else if (src.startsWith('/')) {
                         const urlObj = new URL(targetUrl);
                         src = urlObj.origin + src;
                     } else if (!src.startsWith('http')) {
-                        // Skip complex relative or data URLs for now to keep it simple
-                         return;
+                         return; // skip local relative paths for now
                     }
                     validImageUrls.push(src);
                 }
@@ -220,18 +215,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // We'll process just the first large-looking image to avoid crashing mobile browsers
-            // A real app would provide a gallery or scroll view.
-            // Let's load up to 3 images.
-            const imagesToProcess = validImageUrls.slice(0, 3);
+            const imagesToProcess = validImageUrls.slice(0, 5);
 
-            // Need to process them sequentially or proxy might rate limit
-            for (const src of imagesToProcess) {
-                 const proxiedImgUrl = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(src)}`;
-                 window.processImageSource(proxiedImgUrl);
-            }
+            let processedCount = 0;
+            const processNext = () => {
+                if (processedCount >= imagesToProcess.length) {
+                    return; // All done (or at least sent to processImageSource)
+                }
+                const src = imagesToProcess[processedCount];
+                // Use wsrv.nl to reliably proxy the image and set CORS headers
+                const proxiedImgUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(src);
 
-            window.hideLoading(); // Wait, processImageSource is async. Loading indicator management could be better.
+                // We'll trust processImageSource to hide loading when the first one loads
+                window.processImageSource(proxiedImgUrl);
+                processedCount++;
+                setTimeout(processNext, 500); // Small delay to avoid hammering
+            };
+
+            processNext();
 
         } catch (err) {
             window.showError(`Error fetching URL: ${err.message}`);
