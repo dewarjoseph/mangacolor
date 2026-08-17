@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Colorizer Web App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Manga Colorizer</h1>
+        <p>Enter a manga page URL or upload an image to colorize it.</p>
+    </header>
+
+    <main>
+        <section class="controls">
+            <div class="input-group">
+                <input type="text" id="url-input" placeholder="Paste manga page URL here...">
+                <button id="load-url-btn">Load URL</button>
+            </div>
+            <div class="divider">OR</div>
+            <div class="input-group">
+                <label for="file-input" class="file-label">Upload Image</label>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+
+            <div class="settings">
+                <label for="color-style">Color Style:</label>
+                <select id="color-style">
+                    <option value="vibrant">Vibrant Shonen</option>
+                    <option value="warm">Warm Vintage</option>
+                    <option value="cool">Cool Neon</option>
+                </select>
+            </div>
+        </section>
+
+        <section id="viewer-container">
+            <div id="loading" class="hidden">Processing...</div>
+            <div id="error-message" class="hidden"></div>
+            <div id="canvas-container"></div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
